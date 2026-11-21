@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Soins critiques Trousseau</title>
+<meta name="theme-color" content="#0f3d5e">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root{
+    --bg:#f3f6f9; --card:#fff; --ink:#14212b; --muted:#5d6d7a; --line:#d9e1e8;
+    --accent:#0f3d5e; --accent2:#1f6fa8; --hl:#fff1a8; --soft:#e6f1fa;
+    --hdr:56px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0f161c; --card:#18222b; --ink:#e7eef4; --muted:#93a4b2; --line:#2a3946;
+      --accent:#5fb0ea; --accent2:#5fb0ea; --hl:#6b5a12; --soft:#1d3244; }
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);
+    -webkit-tap-highlight-color:transparent}
+  .hidden{display:none !important}
+  header{position:fixed;top:0;left:0;right:0;z-index:10;background:#0f3d5e;color:#fff;
+    padding:env(safe-area-inset-top) 8px 0;height:calc(var(--hdr) + env(safe-area-inset-top));
+    display:flex;align-items:center;gap:6px}
+  header h1{font-size:1.1rem;margin:0;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:6px}
+  .hbtn{background:none;border:0;color:#fff;font-size:1.5rem;width:44px;height:44px;border-radius:10px;cursor:pointer;flex-shrink:0}
+  .hbtn:active{background:rgba(255,255,255,.15)}
+  #view{padding-top:calc(var(--hdr) + env(safe-area-inset-top))}
+  main{max-width:640px;margin:0 auto;padding:14px 12px calc(24px + env(safe-area-inset-bottom))}
+
+  /* Accueil */
+  .home{display:grid;grid-template-columns:1fr;gap:14px;margin-top:10px}
+  .tile{display:flex;align-items:center;gap:16px;background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:20px 18px;color:var(--ink);text-decoration:none;font-size:1.2rem;font-weight:650;cursor:pointer;width:100%;text-align:left}
+  .tile:active{background:var(--soft)}
+  .tile .ic{width:58px;height:58px;border-radius:16px;display:grid;place-items:center;flex-shrink:0;color:#fff}
+  .tile .ic svg{width:32px;height:32px}
+  .tile small{display:block;font-weight:400;font-size:.85rem;color:var(--muted);margin-top:3px}
+  .c1{background:#1f6fa8}.c2{background:#0b7a4b}.c3{background:#b4472c}
+  .foot{font-size:.75rem;color:var(--muted);text-align:center;margin-top:22px;line-height:1.5}
+
+  /* Protocoles */
+  .search{position:relative;margin-bottom:14px}
+  .search input{width:100%;font-size:1.05rem;padding:12px 40px 12px 42px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}
+  .search input:focus{outline:2px solid var(--accent2);border-color:transparent}
+  .search input::-webkit-search-cancel-button{-webkit-appearance:none;display:none}
+  .search .lens{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+  .search .clr{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--muted);font-size:1.3rem;width:36px;height:36px;cursor:pointer}
+  .svc{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .svc button{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 12px;min-height:92px;
+    color:var(--ink);font-size:.98rem;font-weight:600;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;gap:8px}
+  .svc button:active{background:var(--soft)}
+  .svc button.all{grid-column:1 / -1;background:var(--accent);color:#fff;border-color:var(--accent);min-height:64px}
+  @media (prefers-color-scheme: dark){ .svc button.all{color:#0f161c} }
+  .svc .n{font-size:.8rem;font-weight:400;opacity:.75}
+  h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:18px 0 8px}
+  .list{display:flex;flex-direction:column;gap:8px}
+  .item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;display:block;width:100%;text-align:left;color:var(--ink);font-size:1rem;text-decoration:none}
+  .item:active{background:var(--soft)}
+  .item .t{font-weight:600}
+  .item .m{font-size:.78rem;color:var(--muted);margin-top:4px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .tag{border:1px solid var(--line);border-radius:999px;padding:1px 8px;font-size:.72rem}
+  .tag.com{border-color:var(--accent2);color:var(--accent2)}
+  .snip{font-size:.85rem;color:var(--muted);margin-top:6px;line-height:1.4}
+  mark{background:var(--hl);color:inherit;border-radius:3px;padding:0 1px}
+  .empty{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:18px;color:var(--muted);text-align:center;font-size:.95rem}
+  .offline{display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:18px;font-size:.85rem;color:var(--muted)}
+  .btn{border:0;background:var(--accent);color:#fff;border-radius:10px;padding:9px 12px;font-size:.9rem;font-weight:600;cursor:pointer;flex-shrink:0}
+  @media (prefers-color-scheme: dark){ .btn{color:#0f161c} }
+  .btn:disabled{opacity:.5}
+
+  /* Visionneuse PDF */
+  #viewer{position:fixed;inset:calc(var(--hdr) + env(safe-area-inset-top)) 0 0 0;background:#525659;display:flex;flex-direction:column}
+  .vbar{display:flex;gap:6px;align-items:center;padding:6px 8px;background:var(--card);border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .vbar .sp{flex:1}
+  .vbar button,.vbar a{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:8px;min-width:38px;height:36px;padding:0 10px;font-size:1rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+  .vbar .pg{font-size:.85rem;color:var(--muted)}
+  .hits{display:flex;gap:6px;align-items:center;overflow-x:auto;padding:6px 8px;background:var(--soft);font-size:.8rem;color:var(--ink);white-space:nowrap}
+  .hits button{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:3px 10px;font-size:.8rem;cursor:pointer}
+  #pages{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:8px 0}
+  .page{margin:0 auto 8px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35);position:relative}
+  .page canvas{display:block;width:100%;height:100%}
+  .page .hlbox{position:absolute;background:rgba(255,213,0,.4);border-radius:2px;pointer-events:none}
+  .vmsg{color:#fff;text-align:center;padding:30px 16px}
+
+  /* Verrouillage */
+  .lock{position:fixed;inset:calc(var(--hdr) + env(safe-area-inset-top)) 0 0 0;z-index:20;background:var(--bg);overflow:auto}
+  .lockcard{max-width:420px;margin:40px auto 0;padding:24px 20px;background:var(--card);border:1px solid var(--line);border-radius:18px;text-align:center}
+  .lockcard img{border-radius:16px}
+  .lockcard h2{font-size:1.1rem;text-transform:none;letter-spacing:0;color:var(--ink);margin:12px 0 18px}
+  .lockcard label{display:block;text-align:left;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+  .lockcard input[type=password]{width:100%;font-size:1.15rem;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+  .lockcard .chk{display:flex;align-items:center;gap:8px;font-size:.92rem;color:var(--ink);margin:12px 0 16px}
+  .lockcard .chk input{width:18px;height:18px}
+  .btn.big{width:100%;padding:13px;font-size:1.05rem}
+  .warn{color:#b4472c;font-size:.9rem;min-height:1.2em;margin:12px 0 0}
+  .linkbtn{display:block;margin:10px auto 0;background:none;border:0;color:var(--muted);font-size:.78rem;text-decoration:underline;cursor:pointer}
+
+  /* Applications intégrées */
+  .frame{position:fixed;inset:calc(var(--hdr) + env(safe-area-inset-top)) 0 0 0;border:0;width:100%;height:calc(100% - var(--hdr) - env(safe-area-inset-top));background:var(--bg)}
+</style>
+</head>
+<body>
+<header>
+  <button class="hbtn hidden" id="back" aria-label="Retour">‹</button>
+  <h1 id="title">Soins critiques Trousseau</h1>
+  <a class="hbtn hidden" id="ext" aria-label="Ouvrir à part" title="Ouvrir à part" target="_blank" rel="noopener" style="display:grid;place-items:center;text-decoration:none;font-size:1.2rem">↗</a>
+  <button class="hbtn hidden" id="homeBtn" aria-label="Accueil" style="font-size:1.25rem">⌂</button>
+</header>
+
+<div id="view"></div>
+
+<section id="lock" class="lock hidden">
+  <div class="lockcard">
+    <img src="icon-192.png" alt="" width="72" height="72">
+    <h2>Accès réservé</h2>
+    <label for="pwd">Mot de passe du service</label>
+    <input id="pwd" type="password" autocomplete="current-password" enterkeyhint="go">
+    <label class="chk"><input type="checkbox" id="remember" checked> Rester connecté sur cet appareil</label>
+    <button class="btn big" id="unlock">Déverrouiller</button>
+    <p class="warn" id="lockmsg"></p>
+  </div>
+</section>
+
+<!-- Les applications intégrées restent chargées en mémoire : on ne perd pas sa saisie en revenant à l'accueil -->
+<iframe id="f-antibio" class="frame hidden" title="Antibiotiques réa"></iframe>
+<iframe id="f-debit" class="frame hidden" title="Débit"></iframe>
+
+<script>
+"use strict";
+// ---------------------------------------------------------------------------
+// Configuration
+// ---------------------------------------------------------------------------
+// Les deux applications autonomes, publiées sur le même site GitHub Pages.
+// Chemins relatifs : même origine → elles s'affichent dans l'application sans en sortir.
+const APPS = {
+  antibio: { titre: "Antibiotiques réa", url: "../antibio-rea/" },
+  debit:   { titre: "Débit",             url: "../doses-se/" }
+};
+const SERVICES = [
+  { id: "rea-chir", nom: "Réanimation chirurgicale" },
+  { id: "rea-ntb",  nom: "Réanimation neurotraumatologique et brûlés" },
+  { id: "rea-card", nom: "Réanimation cardiaque" },
+  { id: "sic",      nom: "Soins intensifs chirurgicaux" }
+];
+const SVC = Object.fromEntries(SERVICES.map(s => [s.id, s]));
+const PDF_CACHE = "sct-pdf";
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtDate = d => { if (!d) return ""; const p = String(d).split("-"); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : p.length === 2 ? `${p[1]}/${p[0]}` : d; };
+
+// Normalisation caractère par caractère (minuscules, sans accents) : même longueur que le texte d'origine,
+// ce qui permet de surligner l'extrait original aux mêmes positions.
+function norm(s){
+  let o = "";
+  for (const ch of String(s)) {
+    let c = ch.normalize("NFD")[0].toLowerCase();
+    if (c.length !== ch.length) c = c.padEnd(ch.length, " ").slice(0, ch.length);
+    o += c;
+  }
+  return o;
+}
+const tokens = q => [...new Set(norm(q).split(/[^a-z0-9µœæ%.,/-]+/i).map(t => t.replace(/^[.,/-]+|[.,/-]+$/g, "")).filter(t => t.length >= 2))];
+
+// ---------------------------------------------------------------------------
+// Données des protocoles
+// ---------------------------------------------------------------------------
+let DATA = null;      // liste des protocoles (déchiffrée)
+let TEXTE = null;     // texte des PDF pour la recherche (déchiffré)
+let ENC = null;       // en-tête du fichier chiffré (sel, itérations)
+async function fetchEnc(){
+  if (ENC) return ENC;
+  const r = await fetch("protocoles/donnees.enc.json", {cache: "no-cache"});
+  if (!r.ok) throw new Error("data");
+  ENC = await r.json();
+  return ENC;
+}
+async function loadData(){
+  if (DATA) return DATA;
+  const E = await fetchEnc();
+  const d = JSON.parse(new TextDecoder().decode(await decrypt(KEY, b64(E.iv), b64(E.ct))));
+  DATA = { mise_a_jour: d.mise_a_jour, protocoles: d.protocoles };
+  for (const p of DATA.protocoles) {
+    p.services = p.services || [];
+    p.commun = !!p.commun;
+    p._nt = norm(p.titre + " " + (p.mots_cles || ""));
+  }
+  DATA.protocoles.sort((a, b) => a.titre.localeCompare(b.titre, "fr", {sensitivity: "base"}));
+  TEXTE = {};
+  for (const [id, pages] of Object.entries(d.texte || {})) TEXTE[id] = { pages, npages: pages.map(norm) };
+  return DATA;
+}
+async function loadTexte(){ await loadData(); return TEXTE; }
+
+// ---------------------------------------------------------------------------
+// Chiffrement : AES-256-GCM, clé dérivée du mot de passe (PBKDF2-SHA256)
+// ---------------------------------------------------------------------------
+const KEYSTORE = "sctKey", ABX_KEYSTORE = "antibioReaKey";
+let KEY = null;
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const tob64 = u => btoa(String.fromCharCode(...new Uint8Array(u)));
+async function deriveKey(pwd, saltB64, iter){
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pwd.normalize("NFC")), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({name: "PBKDF2", salt: b64(saltB64), iterations: iter, hash: "SHA-256"},
+    base, {name: "AES-GCM", length: 256}, true, ["decrypt"]);
+}
+const decrypt = (key, iv, ct) => crypto.subtle.decrypt({name: "AES-GCM", iv}, key, ct);
+// fichier binaire chiffré : 12 octets d'IV puis le contenu chiffré
+async function decryptBin(buf){ const u = new Uint8Array(buf); return decrypt(KEY, u.slice(0, 12), u.slice(12)); }
+
+// Même mot de passe que Antibio Réa : on enregistre aussi sa clé pour ne pas avoir à le ressaisir.
+async function shareWithAntibio(pwd){
+  try {
+    if (localStorage.getItem(ABX_KEYSTORE)) return;
+    const t = await (await fetch(APPS.antibio.url + "data.enc.js", {cache: "no-cache"})).text();
+    const E = JSON.parse(t.slice(t.indexOf("{"), t.lastIndexOf("}") + 1));
+    const k = await deriveKey(pwd, E.salt, E.iter);
+    await decrypt(k, b64(E.iv), b64(E.ct));           // vérifie que le mot de passe est bien le même
+    localStorage.setItem(ABX_KEYSTORE, tob64(await crypto.subtle.exportKey("raw", k)));
+  } catch {}
+}
+function showLock(msg){
+  $("lock").classList.remove("hidden");
+  $("lockmsg").textContent = msg || "";
+  $("pwd").value = "";
+  setTimeout(() => $("pwd").focus(), 50);
+}
+async function tryUnlock(){
+  const pwd = $("pwd").value;
+  if (!pwd) return;
+  $("lockmsg").textContent = "Vérification…";
+  try {
+    const E = await fetchEnc();
+    KEY = await deriveKey(pwd, E.salt, E.iter);
+    DATA = null; await loadData();
+  } catch (e) {
+    KEY = null; DATA = null;
+    $("lockmsg").textContent = e.message === "data" ? "Données inaccessibles : vérifier la connexion." : "Mot de passe incorrect.";
+    return;
+  }
+  if ($("remember").checked) {
+    try { localStorage.setItem(KEYSTORE, tob64(await crypto.subtle.exportKey("raw", KEY))); } catch {}
+    await shareWithAntibio(pwd);
+  }
+  $("lock").classList.add("hidden");
+  route();
+}
+function lockApp(){
+  try { localStorage.removeItem(KEYSTORE); localStorage.removeItem(ABX_KEYSTORE); } catch {}
+  KEY = null; DATA = null; TEXTE = null;
+  for (const k of Object.keys(APPS)) { const f = $("f-" + k); f.removeAttribute("src"); f.src = "about:blank"; f.removeAttribute("src"); }
+  location.hash = "";
+  showFrame(null); $("view").innerHTML = "";
+  showLock();
+}
+async function start(){
+  let stored = null; try { stored = localStorage.getItem(KEYSTORE); } catch {}
+  if (stored) {
+    try {
+      KEY = await crypto.subtle.importKey("raw", b64(stored), {name: "AES-GCM"}, true, ["decrypt"]);
+      await loadData();
+      return route();
+    } catch (e) {
+      KEY = null; DATA = null;
+      // hors ligne sans données en cache : on garde la clé, sinon (mot de passe changé) on l'oublie
+      if (e.message !== "data") try { localStorage.removeItem(KEYSTORE); } catch {}
+      return showLock(e.message === "data" ? "Données inaccessibles : vérifier la connexion." : "Le mot de passe a changé : saisir le nouveau mot de passe.");
+    }
+  }
+  showLock();
+}
+const inService = (p, svc) => svc === "tous" || p.commun || p.services.includes(svc);
+
+// Recherche : tous les mots doivent figurer dans le titre ou le texte.
+function search(list, q){
+  const toks = tokens(q);
+  if (!toks.length) return null;
+  const out = [];
+  for (const p of list) {
+    const tx = TEXTE?.[p.id];
+    let score = 0, ok = true, pagesHit = new Set(), first = null;
+    for (const t of toks) {
+      const inTitle = p._nt.includes(t);
+      let n = 0;
+      if (tx) tx.npages.forEach((pg, i) => {
+        let k = pg.indexOf(t);
+        if (k >= 0) { pagesHit.add(i + 1); if (!first) first = { page: i, pos: k, len: t.length }; }
+        while (k >= 0 && n < 50) { n++; k = pg.indexOf(t, k + t.length); }
+      });
+      if (!inTitle && !n) { ok = false; break; }
+      score += (inTitle ? 100 : 0) + Math.min(n, 20);
+    }
+    if (ok) out.push({ p, score, pages: [...pagesHit].sort((a, b) => a - b), first });
+  }
+  out.sort((a, b) => b.score - a.score || a.p.titre.localeCompare(b.p.titre, "fr"));
+  return { toks, out };
+}
+function highlight(raw, toks){
+  const n = norm(raw), marks = [];
+  for (const t of toks) { let k = n.indexOf(t); while (k >= 0) { marks.push([k, k + t.length]); k = n.indexOf(t, k + t.length); } }
+  marks.sort((a, b) => a[0] - b[0]);
+  let o = "", pos = 0;
+  for (const [s, e] of marks) { if (s < pos) continue; o += esc(raw.slice(pos, s)) + "<mark>" + esc(raw.slice(s, e)) + "</mark>"; pos = e; }
+  return o + esc(raw.slice(pos));
+}
+function snippet(r, toks){
+  if (!r.first) return "";
+  const raw = TEXTE[r.p.id].pages[r.first.page];
+  let s = Math.max(0, r.first.pos - 70), e = Math.min(raw.length, r.first.pos + r.first.len + 110);
+  const txt = (s > 0 ? "… " : "") + raw.slice(s, e).replace(/\s+/g, " ").trim() + (e < raw.length ? " …" : "");
+  return `<div class="snip">p. ${r.first.page + 1} : ${highlight(txt, toks)}</div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Rendu
+// ---------------------------------------------------------------------------
+const ICONS = {
+  doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"/></svg>',
+  pill: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5a5 5 0 0 1-7-7l10-10a5 5 0 0 1 7 7z"/><path d="m8.5 8.5 7 7"/></svg>',
+  pump: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="9" width="15" height="6" rx="1"/><path d="M17 12h5M6 9v6M10 9v6M2 12H0"/><path d="M19 5v3M19 16v3"/></svg>'
+};
+
+function setHeader(title, {back = false, home = false, ext = null} = {}){
+  $("title").textContent = title;
+  $("back").classList.toggle("hidden", !back);
+  $("homeBtn").classList.toggle("hidden", !home);
+  $("ext").classList.toggle("hidden", !ext);
+  if (ext) $("ext").href = ext;
+  document.title = title === "Soins critiques Trousseau" ? title : title + " · Soins critiques Trousseau";
+}
+function showFrame(which){
+  for (const k of Object.keys(APPS)) $("f-" + k).classList.toggle("hidden", k !== which);
+  $("view").classList.toggle("hidden", !!which);
+}
+
+function renderHome(){
+  showFrame(null);
+  // une nouvelle visite des protocoles repart d'une recherche vide
+  Object.keys(sessionStorage).filter(k => k.startsWith("q:")).forEach(k => sessionStorage.removeItem(k));
+  setHeader("Soins critiques Trousseau");
+  $("view").innerHTML = `<main>
+    <div class="home">
+      <a class="tile" href="#protocoles"><span class="ic c1">${ICONS.doc}</span><span>Protocoles<small>Protocoles des services, recherche dans les textes</small></span></a>
+      <a class="tile" href="#antibio"><span class="ic c2">${ICONS.pill}</span><span>Antibiotiques réa<small>Posologies et adaptation à la fonction rénale</small></span></a>
+      <a class="tile" href="#debit"><span class="ic c3">${ICONS.pump}</span><span>Débit<small>Conversion débit de seringue ⇄ dose</small></span></a>
+    </div>
+    <p class="foot">Outil d'aide destiné aux praticiens du service.<br>Les protocoles officiels du service font référence.</p>
+    <button class="linkbtn" id="lockBtn">Verrouiller (oublier le mot de passe sur cet appareil)</button>
+  </main>`;
+  $("lockBtn").onclick = lockApp;
+}
+
+function renderApp(which){
+  const a = APPS[which];
+  const f = $("f-" + which);
+  if (!f.getAttribute("src")) f.src = a.url;   // chargée une seule fois puis conservée
+  setHeader(a.titre, {back: true, ext: a.url});
+  showFrame(which);
+}
+
+let searchTimer = null;
+async function renderProtocoles(svc){
+  showFrame(null);
+  const d = await loadData();
+  const titre = svc ? (svc === "tous" ? "Tous les protocoles" : SVC[svc]?.nom || "Protocoles") : "Protocoles";
+  setHeader(titre, {back: true, home: !!svc});
+  const prev = sessionStorage.getItem("q:" + (svc || "")) || "";
+  let html = `<main>
+    <div class="search"><span class="lens">⌕</span>
+      <input id="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="${svc && svc !== "tous" ? "Rechercher dans ce service" : "Rechercher un protocole ou un mot"}" value="${esc(prev)}">
+      <button class="clr hidden" id="clr" aria-label="Effacer">×</button></div>
+    <div id="res"></div>`;
+  if (!svc) {
+    const count = s => d.protocoles.filter(p => inService(p, s)).length;
+    html += `<div id="browse"><div class="svc">
+      <button class="all" data-svc="tous">Tous les protocoles<span class="n">${d.protocoles.length} protocole${d.protocoles.length > 1 ? "s" : ""}</span></button>
+      ${SERVICES.map(s => `<button data-svc="${s.id}">${esc(s.nom)}<span class="n">${count(s.id)} protocole${count(s.id) > 1 ? "s" : ""}</span></button>`).join("")}
+    </div>
+    <div class="offline" id="off"><span id="offTxt">Hors ligne : vérification…</span><button class="btn" id="offBtn" disabled>Tout télécharger</button></div>
+    ${d.mise_a_jour ? `<p class="foot">Protocoles mis à jour le ${fmtDate(d.mise_a_jour)}</p>` : ""}</div>`;
+  } else {
+    html += `<div id="browse"></div>`;
+  }
+  html += `</main>`;
+  $("view").innerHTML = html;
+
+  if (!svc) {
+    $("view").querySelectorAll("[data-svc]").forEach(b => b.onclick = () => location.hash = "protocoles/" + b.dataset.svc);
+    refreshOffline();
+    $("offBtn").onclick = downloadAll;
+  } else {
+    renderList($("browse"), d.protocoles.filter(p => inService(p, svc)), svc);
+  }
+  const q = $("q");
+  const run = async () => {
+    const v = q.value;
+    sessionStorage.setItem("q:" + (svc || ""), v);
+    $("clr").classList.toggle("hidden", !v);
+    if (!tokens(v).length) { $("res").innerHTML = ""; $("browse").classList.remove("hidden"); return; }
+    await loadTexte();
+    const scope = d.protocoles.filter(p => !svc || inService(p, svc));
+    const r = search(scope, v);
+    $("browse").classList.add("hidden");
+    $("res").innerHTML = !r.out.length
+      ? `<div class="empty">Aucun protocole ne contient « ${esc(v.trim())} »${svc && svc !== "tous" ? " dans ce service" : ""}.</div>`
+      : `<h2>${r.out.length} résultat${r.out.length > 1 ? "s" : ""}</h2><div class="list">${r.out.map(x => itemHtml(x.p, svc, {
+          titreHtml: highlight(x.p.titre, r.toks), extra: snippet(x, r.toks),
+          href: `#pdf/${encodeURIComponent(x.p.id)}/${x.pages[0] || 1}?q=${encodeURIComponent(v.trim())}`
+        })).join("")}</div>`;
+  };
+  q.oninput = () => { clearTimeout(searchTimer); searchTimer = setTimeout(run, 180); };
+  $("clr").onclick = () => { q.value = ""; run(); q.focus(); };
+  if (prev) run();
+}
+
+function itemHtml(p, svc, {titreHtml, extra = "", href} = {}){
+  const tags = [];
+  if (p.commun) tags.push(`<span class="tag com">Commun à tous les services</span>`);
+  else if (!svc || svc === "tous") for (const s of p.services) if (SVC[s]) tags.push(`<span class="tag">${esc(SVC[s].nom)}</span>`);
+  if (p.date) tags.push(`<span>Version ${esc(fmtDate(p.date))}</span>`);
+  return `<a class="item" href="${href || "#pdf/" + encodeURIComponent(p.id)}"><div class="t">${titreHtml || esc(p.titre)}</div>
+    ${tags.length ? `<div class="m">${tags.join("")}</div>` : ""}${extra}</a>`;
+}
+function renderList(el, list, svc){
+  el.innerHTML = list.length
+    ? `<div class="list">${list.map(p => itemHtml(p, svc)).join("")}</div>`
+    : `<div class="empty">Aucun protocole pour l'instant.</div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Hors ligne : téléchargement des PDF dans le cache
+// ---------------------------------------------------------------------------
+async function refreshOffline(){
+  const t = $("offTxt"), b = $("offBtn");
+  if (!t) return;
+  if (!("caches" in window)) { t.textContent = "Hors ligne non disponible sur ce navigateur"; return; }
+  const d = await loadData(), c = await caches.open(PDF_CACHE);
+  let n = 0;
+  for (const p of d.protocoles) if (await c.match(new URL("protocoles/" + p.fichier, location.href).href)) n++;
+  const tot = d.protocoles.length;
+  t.textContent = tot ? `Disponibles hors ligne : ${n}/${tot}` : "Aucun protocole à télécharger";
+  b.disabled = !tot || n === tot;
+  b.textContent = n === tot && tot ? "À jour" : "Tout télécharger";
+}
+async function downloadAll(){
+  const d = await loadData(), c = await caches.open(PDF_CACHE), b = $("offBtn");
+  b.disabled = true;
+  const urls = new Set(d.protocoles.map(p => new URL("protocoles/" + p.fichier, location.href).href));
+  let i = 0, err = 0;
+  for (const u of urls) {
+    b.textContent = `${++i}/${urls.size}…`;
+    try { const r = await fetch(u, {cache: "no-cache"}); if (!r.ok) throw 0; await c.put(u, r); } catch { err++; }
+  }
+  // supprime les PDF retirés de la liste
+  for (const req of await c.keys()) if (!urls.has(req.url)) await c.delete(req);
+  await loadTexte();
+  await refreshOffline();
+  if (err) $("offTxt").textContent += ` (${err} échec${err > 1 ? "s" : ""} : réessayer avec du réseau)`;
+}
+
+// ---------------------------------------------------------------------------
+// Visionneuse PDF (pdf.js, intégrée : on reste dans l'application)
+// ---------------------------------------------------------------------------
+let pdfjs = null, curDoc = null, zoom = 1;
+async function getPdfjs(){
+  if (pdfjs) return pdfjs;
+  pdfjs = await import("./vendor/pdfjs/pdf.min.mjs");
+  pdfjs.GlobalWorkerOptions.workerSrc = "vendor/pdfjs/pdf.worker.min.mjs";
+  return pdfjs;
+}
+async function renderPdf(id, page, q){
+  showFrame(null);
+  const d = await loadData();
+  const p = d.protocoles.find(x => x.id === id);
+  if (!p) { setHeader("Protocole", {back: true, home: true}); $("view").innerHTML = `<main><div class="empty">Protocole introuvable.</div></main>`; return; }
+  const url = "protocoles/" + p.fichier;
+  setHeader(p.titre, {back: true, home: true});
+  $("view").innerHTML = `<div id="viewer">
+    <div class="vbar">
+      <button id="zm" aria-label="Dézoomer">−</button><button id="zp" aria-label="Zoomer">+</button>
+      <span class="pg" id="pg"></span><span class="sp"></span>
+      <a id="dl" class="hidden" download="${esc(p.titre)}.pdf" aria-label="Télécharger le PDF" title="Télécharger / partager le PDF">⤓</a>
+    </div>
+    <div class="hits hidden" id="hits"></div>
+    <div id="pages"><div class="vmsg">Chargement…</div></div>
+  </div>`;
+  zoom = 1;
+  let doc;
+  try {
+    const lib = await getPdfjs();
+    // le PDF chiffré est conservé tel quel dans le cache (hors ligne) puis déchiffré en mémoire
+    let enc;
+    const c = "caches" in window ? await caches.open(PDF_CACHE) : null;
+    const abs = new URL(url, location.href).href;
+    try {
+      const r = await fetch(abs, {cache: "no-cache"});
+      if (!r.ok) throw 0;
+      if (c) c.put(abs, r.clone());
+      enc = await r.arrayBuffer();
+    } catch {
+      const r = c && await c.match(abs);
+      if (!r) throw new Error("offline");
+      enc = await r.arrayBuffer();
+    }
+    const buf = await decryptBin(enc);
+    const dl = $("dl");
+    if (dl) { if (dl.dataset.u) URL.revokeObjectURL(dl.dataset.u); dl.dataset.u = dl.href = URL.createObjectURL(new Blob([buf], {type: "application/pdf"})); dl.classList.remove("hidden"); }
+    doc = await lib.getDocument({ data: new Uint8Array(buf), standardFontDataUrl: "vendor/pdfjs/standard_fonts/" }).promise;
+  } catch (e) {
+    $("pages").innerHTML = `<div class="vmsg">${e.message === "offline" ? "Pas de réseau et ce protocole n'a pas été téléchargé pour une utilisation hors ligne." : "Impossible d'ouvrir ce PDF."}</div>`;
+    return;
+  }
+  if (curDoc) curDoc.destroy();
+  curDoc = doc;
+  const toks = q ? tokens(q) : [];
+  await layoutPages(doc, toks);
+  $("zm").onclick = () => { zoom = Math.max(0.6, zoom / 1.25); layoutPages(doc, toks, true); };
+  $("zp").onclick = () => { zoom = Math.min(4, zoom * 1.25); layoutPages(doc, toks, true); };
+
+  if (toks.length) {
+    await loadTexte();
+    const pages = [];
+    const tx = TEXTE[id];
+    if (tx) tx.npages.forEach((pg, i) => { if (toks.some(t => pg.includes(t))) pages.push(i + 1); });
+    const h = $("hits");
+    h.classList.remove("hidden");
+    h.innerHTML = pages.length
+      ? `<span>« ${esc(q)} » : page${pages.length > 1 ? "s" : ""}</span>` + pages.map(n => `<button data-p="${n}">${n}</button>`).join("")
+      : `<span>« ${esc(q)} » figure dans le titre</span>`;
+    h.querySelectorAll("[data-p]").forEach(b => b.onclick = () => goPage(+b.dataset.p));
+  }
+  if (page > 1) goPage(page);
+}
+function goPage(n){
+  const el = document.querySelector(`.page[data-n="${n}"]`);
+  if (el) $("pages").scrollTo({ top: el.offsetTop - 8, behavior: "instant" });
+}
+async function layoutPages(doc, toks, keepPos){
+  const box = $("pages");
+  if (!box) return;
+  const ratio = keepPos && box.scrollHeight ? box.scrollTop / box.scrollHeight : 0;
+  const w = Math.min(box.clientWidth - 16, 900) * zoom;
+  box.innerHTML = "";
+  const first = await doc.getPage(1);
+  const vp1 = first.getViewport({ scale: 1 });
+  const holders = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    const div = document.createElement("div");
+    div.className = "page"; div.dataset.n = i;
+    div.style.width = w + "px"; div.style.height = (w * vp1.height / vp1.width) + "px";
+    box.appendChild(div); holders.push(div);
+  }
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const drawn = new Set();
+  const draw = async div => {
+    const n = +div.dataset.n;
+    if (drawn.has(n)) return; drawn.add(n);
+    const pg = await doc.getPage(n);
+    const base = pg.getViewport({ scale: 1 });
+    const scale = w / base.width;
+    const vp = pg.getViewport({ scale: scale * dpr });
+    div.style.height = (base.height * scale) + "px";
+    const cv = document.createElement("canvas");
+    cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
+    div.appendChild(cv);
+    await pg.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
+    if (toks.length) markHits(pg, div, pg.getViewport({ scale }), toks);
+  };
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) draw(e.target); }), { root: box, rootMargin: "600px 0px" });
+  holders.forEach(h => io.observe(h));
+  const pg = () => {
+    const mid = box.scrollTop + box.clientHeight / 3;
+    let cur = 1; for (const h of holders) if (h.offsetTop <= mid) cur = +h.dataset.n;
+    $("pg").textContent = `${cur} / ${doc.numPages}`;
+  };
+  box.onscroll = pg; pg();
+  if (keepPos) box.scrollTop = ratio * box.scrollHeight;
+}
+const _mctx = document.createElement("canvas").getContext("2d");
+_mctx.font = "100px Helvetica, Arial, sans-serif";
+const measure = str => _mctx.measureText(str).width;
+// Surligne les mots recherchés sur la page (approximation au niveau de chaque fragment de texte)
+async function markHits(pg, div, vp, toks){
+  const tc = await pg.getTextContent();
+  for (const it of tc.items) {
+    if (!it.str) continue;
+    const n = norm(it.str);
+    for (const t of toks) {
+      let k = n.indexOf(t);
+      while (k >= 0) {
+        const [a, b, , , e, f] = pdfjs.Util.transform(vp.transform, it.transform);
+        const fh = Math.hypot(a, b) || 10;
+        const W = measure(it.str) || 1, sc = it.width * vp.scale / W;
+        const box = document.createElement("div");
+        box.className = "hlbox";
+        box.style.left = (e + measure(it.str.slice(0, k)) * sc) + "px"; box.style.top = (f - fh) + "px";
+        box.style.width = (measure(it.str.slice(k, k + t.length)) * sc) + "px"; box.style.height = (fh * 1.15) + "px";
+        div.appendChild(box);
+        k = n.indexOf(t, k + t.length);
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Navigation (le bouton retour d'Android fonctionne grâce à l'historique)
+// ---------------------------------------------------------------------------
+async function route(){
+  if (!KEY) return;
+  const h = location.hash.slice(1);
+  const i = h.indexOf("?");
+  const path = i >= 0 ? h.slice(0, i) : h, qs = i >= 0 ? h.slice(i + 1) : "";
+  const parts = path.split("/").filter(Boolean).map(s => { try { return decodeURIComponent(s); } catch { return s; } });
+  if (!parts.length) return renderHome();
+  if (parts[0] === "antibio" || parts[0] === "debit") return renderApp(parts[0]);
+  if (parts[0] === "protocoles") return renderProtocoles(parts[1]);
+  if (parts[0] === "pdf") return renderPdf(parts[1], +parts[2] || 1, new URLSearchParams(qs || "").get("q") || "");
+  renderHome();
+}
+window.addEventListener("hashchange", route);
+$("back").onclick = () => { if (history.length > 1 && sessionStorage.getItem("nav")) history.back(); else location.hash = ""; };
+$("homeBtn").onclick = () => { location.hash = ""; };
+window.addEventListener("hashchange", () => sessionStorage.setItem("nav", "1"));
+$("unlock").onclick = tryUnlock;
+$("pwd").addEventListener("keydown", e => { if (e.key === "Enter") tryUnlock(); });
+start();
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
