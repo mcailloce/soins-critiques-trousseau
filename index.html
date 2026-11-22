@@ -40,7 +40,7 @@
   .tile .ic{width:58px;height:58px;border-radius:16px;display:grid;place-items:center;flex-shrink:0;color:#fff}
   .tile .ic svg{width:32px;height:32px}
   .tile small{display:block;font-weight:400;font-size:.85rem;color:var(--muted);margin-top:3px}
-  .c1{background:#1f6fa8}.c2{background:#0b7a4b}.c3{background:#b4472c}.c4{background:#6b4fa0}
+  .c1{background:#1f6fa8}.c2{background:#0b7a4b}.c3{background:#b4472c}.c4{background:#6b4fa0}.c5{background:#0e7c86}
   .tile .ext{margin-left:auto;color:var(--muted);font-size:1.1rem;font-weight:400}
   .foot{font-size:.75rem;color:var(--muted);text-align:center;margin-top:22px;line-height:1.5}
 
@@ -73,6 +73,19 @@
   .btn{border:0;background:var(--accent);color:#fff;border-radius:10px;padding:9px 12px;font-size:.9rem;font-weight:600;cursor:pointer;flex-shrink:0}
   @media (prefers-color-scheme: dark){ .btn{color:#0f161c} }
   .btn:disabled{opacity:.5}
+
+  /* Annuaire DECT */
+  .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex-shrink:0;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 12px;font-size:.88rem;cursor:pointer}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  @media (prefers-color-scheme: dark){ .chip.on{color:#0f161c} }
+  .dect{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+  .dect .who{flex:1;min-width:0}
+  .dect .nm{font-weight:600}
+  .dect .sub{font-size:.78rem;color:var(--muted);margin-top:2px}
+  .dect .num{font-size:1.45rem;font-weight:700;letter-spacing:1px;font-variant-numeric:tabular-nums;color:var(--accent2);flex-shrink:0}
+  .grp{font-size:.78rem;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:16px 0 6px}
 
   /* Visionneuse PDF */
   #viewer{position:fixed;inset:calc(var(--hdr) + env(safe-area-inset-top)) 0 0 0;background:#525659;display:flex;flex-direction:column}
@@ -150,6 +163,17 @@ const SERVICES = [
 ];
 // Formulaire de non-admission en réanimation chirurgicale (Grist, ouvert hors de l'application)
 const NON_ADMISSION = "https://grist.numerique.gouv.fr/o/docs/forms/sCFasjfWWngRjjkPKxifqp/55";
+// Catégories de l'annuaire DECT (codes utilisés dans sources/annuaire.csv)
+const DECT_CATS = [
+  { id: "mar",       nom: "MAR" },
+  { id: "chir-dig",  nom: "Chirurgien digestif" },
+  { id: "chir-vasc", nom: "Chirurgien vasculaire" },
+  { id: "chir-card", nom: "Chirurgien cardiaque" },
+  { id: "chir-thor", nom: "Chirurgien thoracique" },
+  { id: "cardio",    nom: "Cardiologue" },
+  { id: "hepato",    nom: "Hépatologue" }
+];
+const DCAT = Object.fromEntries(DECT_CATS.map(c => [c.id, c]));
 const SVC = Object.fromEntries(SERVICES.map(s => [s.id, s]));
 const PDF_CACHE = "sct-pdf";
 
@@ -187,7 +211,9 @@ async function loadData(){
   if (DATA) return DATA;
   const E = await fetchEnc();
   const d = JSON.parse(new TextDecoder().decode(await decrypt(KEY, b64(E.iv), b64(E.ct))));
-  DATA = { mise_a_jour: d.mise_a_jour, protocoles: d.protocoles };
+  DATA = { mise_a_jour: d.mise_a_jour, protocoles: d.protocoles, annuaire: d.annuaire || [] };
+  for (const e of DATA.annuaire) e._n = norm([e.nom, e.fonction, (DCAT[e.categorie] || {}).nom, e.numero].join(" "));
+  DATA.annuaire.sort((a, b) => a.nom.localeCompare(b.nom, "fr", {sensitivity: "base"}));
   for (const p of DATA.protocoles) {
     p.services = p.services || [];
     p.commun = !!p.commun;
@@ -325,6 +351,7 @@ function snippet(r, toks){
 const ICONS = {
   doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"/></svg>',
   pill: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5a5 5 0 0 1-7-7l10-10a5 5 0 0 1 7 7z"/><path d="m8.5 8.5 7 7"/></svg>',
+  phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M10 6h4M9.5 10h0M12 10h0M14.5 10h0M9.5 13h0M12 13h0M14.5 13h0M9.5 16h0M12 16h0M14.5 16h0"/></svg>',
   form: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 3h6v3H9zM8 11h8M8 15h5"/><path d="m15 17 1.5 1.5L19 16"/></svg>',
   pump: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="9" width="15" height="6" rx="1"/><path d="M17 12h5M6 9v6M10 9v6M2 12H0"/><path d="M19 5v3M19 16v3"/></svg>'
 };
@@ -352,12 +379,65 @@ function renderHome(){
       <a class="tile" href="#protocoles"><span class="ic c1">${ICONS.doc}</span><span>Protocoles<small>Protocoles des services, recherche dans les textes</small></span></a>
       <a class="tile" href="#antibio"><span class="ic c2">${ICONS.pill}</span><span>Antibiotiques réa<small>Posologies et adaptation à la fonction rénale</small></span></a>
       <a class="tile" href="#debit"><span class="ic c3">${ICONS.pump}</span><span>Débit<small>Conversion débit de seringue ⇄ dose</small></span></a>
+      <a class="tile" href="#annuaire"><span class="ic c5">${ICONS.phone}</span><span>Annuaire DECT<small>Numéros courts des praticiens</small></span></a>
       <a class="tile" href="${NON_ADMISSION}" target="_blank" rel="noopener"><span class="ic c4">${ICONS.form}</span><span>Non-admission<small>Réanimation chirurgicale : formulaire en ligne</small></span><span class="ext">↗</span></a>
     </div>
     <p class="foot">Outil d'aide destiné aux praticiens du service.<br>Les protocoles officiels du service font référence.</p>
     <button class="linkbtn" id="lockBtn">Verrouiller (oublier le mot de passe sur cet appareil)</button>
   </main>`;
   $("lockBtn").onclick = lockApp;
+}
+
+// ---------------------------------------------------------------------------
+// Annuaire DECT
+// ---------------------------------------------------------------------------
+async function renderAnnuaire(cat){
+  showFrame(null);
+  const d = await loadData();
+  cat = DCAT[cat] ? cat : "";
+  setHeader("Annuaire DECT", {back: true, home: true});
+  const prev = sessionStorage.getItem("q:annuaire") || "";
+  const n = c => d.annuaire.filter(e => !c || e.categorie === c).length;
+  $("view").innerHTML = `<main>
+    <div class="search"><span class="lens">⌕</span>
+      <input id="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="Nom, spécialité ou numéro" value="${esc(prev)}">
+      <button class="clr hidden" id="clr" aria-label="Effacer">×</button></div>
+    <div class="chips">
+      <button class="chip${cat ? "" : " on"}" data-c="">Tous (${n("")})</button>
+      ${DECT_CATS.map(c => `<button class="chip${cat === c.id ? " on" : ""}" data-c="${c.id}">${esc(c.nom)} (${n(c.id)})</button>`).join("")}
+    </div>
+    <div id="res"></div>
+    ${d.mise_a_jour ? `<p class="foot">Annuaire mis à jour le ${fmtDate(d.mise_a_jour)}</p>` : ""}
+  </main>`;
+  $("view").querySelectorAll("[data-c]").forEach(b => b.onclick = () => location.replace("#annuaire" + (b.dataset.c ? "/" + b.dataset.c : "")));
+  const q = $("q");
+  const run = () => {
+    const v = q.value;
+    sessionStorage.setItem("q:annuaire", v);
+    $("clr").classList.toggle("hidden", !v);
+    const toks = tokens(v);
+    // les numéros sont cherchés aussi par leur début (ex. « 72 »)
+    const digits = v.replace(/\D/g, "");
+    let list = d.annuaire.filter(e => !cat || e.categorie === cat);
+    if (toks.length || digits) list = list.filter(e => toks.every(t => e._n.includes(t)) || (digits.length >= 2 && e.numero.startsWith(digits)));
+    const item = e => `<div class="dect"><div class="who"><div class="nm">${toks.length ? highlight(e.nom, toks) : esc(e.nom)}</div>
+        <div class="sub">${esc((DCAT[e.categorie] || {}).nom || "")}${e.fonction ? " · " + esc(e.fonction) : ""}</div></div>
+        <div class="num">${esc(e.numero)}</div></div>`;
+    if (!d.annuaire.length) { $("res").innerHTML = `<div class="empty">L'annuaire n'est pas encore rempli.</div>`; return; }
+    if (!list.length) { $("res").innerHTML = `<div class="empty">Aucun praticien ne correspond à « ${esc(v.trim())} ».</div>`; return; }
+    // sans recherche ni catégorie : regroupement par catégorie
+    if (!cat && !toks.length && !digits) {
+      $("res").innerHTML = DECT_CATS.map(c => {
+        const l = list.filter(e => e.categorie === c.id);
+        return l.length ? `<div class="grp">${esc(c.nom)}</div><div class="list">${l.map(item).join("")}</div>` : "";
+      }).join("");
+    } else {
+      $("res").innerHTML = `<div class="list">${list.map(item).join("")}</div>`;
+    }
+  };
+  q.oninput = run;
+  $("clr").onclick = () => { q.value = ""; run(); q.focus(); };
+  run();
 }
 
 function renderApp(which){
@@ -624,6 +704,7 @@ async function route(){
   if (!parts.length) return renderHome();
   if (parts[0] === "antibio" || parts[0] === "debit") return renderApp(parts[0]);
   if (parts[0] === "protocoles") return renderProtocoles(parts[1]);
+  if (parts[0] === "annuaire") return renderAnnuaire(parts[1]);
   if (parts[0] === "pdf") return renderPdf(parts[1], +parts[2] || 1, new URLSearchParams(qs || "").get("q") || "");
   renderHome();
 }
