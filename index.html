@@ -170,7 +170,7 @@ const NON_ADMISSION = "https://grist.numerique.gouv.fr/o/docs/forms/sCFasjfWWngR
 // Annuaire DECT : les catégories (unités) viennent des données, dans l'ordre du fichier source
 let DECT_CATS = [], DCAT = {};
 const slugify = t => norm(t).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-const sansTitre = n => n.replace(/^(dr|pr)\.?\s+/i, "");
+const sansTitre = n => n.replace(/^(dre?|pre?)\.?\s+/i, "");
 const SVC = Object.fromEntries(SERVICES.map(s => [s.id, s]));
 const PDF_CACHE = "sct-pdf";
 
