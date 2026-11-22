@@ -40,7 +40,8 @@
   .tile .ic{width:58px;height:58px;border-radius:16px;display:grid;place-items:center;flex-shrink:0;color:#fff}
   .tile .ic svg{width:32px;height:32px}
   .tile small{display:block;font-weight:400;font-size:.85rem;color:var(--muted);margin-top:3px}
-  .c1{background:#1f6fa8}.c2{background:#0b7a4b}.c3{background:#b4472c}
+  .c1{background:#1f6fa8}.c2{background:#0b7a4b}.c3{background:#b4472c}.c4{background:#6b4fa0}
+  .tile .ext{margin-left:auto;color:var(--muted);font-size:1.1rem;font-weight:400}
   .foot{font-size:.75rem;color:var(--muted);text-align:center;margin-top:22px;line-height:1.5}
 
   /* Protocoles */
@@ -147,6 +148,8 @@ const SERVICES = [
   { id: "rea-card", nom: "Réanimation cardiaque" },
   { id: "sic",      nom: "Soins intensifs chirurgicaux" }
 ];
+// Formulaire de non-admission en réanimation chirurgicale (Grist, ouvert hors de l'application)
+const NON_ADMISSION = "https://grist.numerique.gouv.fr/o/docs/forms/sCFasjfWWngRjjkPKxifqp/55";
 const SVC = Object.fromEntries(SERVICES.map(s => [s.id, s]));
 const PDF_CACHE = "sct-pdf";
 
@@ -322,6 +325,7 @@ function snippet(r, toks){
 const ICONS = {
   doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"/></svg>',
   pill: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5a5 5 0 0 1-7-7l10-10a5 5 0 0 1 7 7z"/><path d="m8.5 8.5 7 7"/></svg>',
+  form: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 3h6v3H9zM8 11h8M8 15h5"/><path d="m15 17 1.5 1.5L19 16"/></svg>',
   pump: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="9" width="15" height="6" rx="1"/><path d="M17 12h5M6 9v6M10 9v6M2 12H0"/><path d="M19 5v3M19 16v3"/></svg>'
 };
 
@@ -348,6 +352,7 @@ function renderHome(){
       <a class="tile" href="#protocoles"><span class="ic c1">${ICONS.doc}</span><span>Protocoles<small>Protocoles des services, recherche dans les textes</small></span></a>
       <a class="tile" href="#antibio"><span class="ic c2">${ICONS.pill}</span><span>Antibiotiques réa<small>Posologies et adaptation à la fonction rénale</small></span></a>
       <a class="tile" href="#debit"><span class="ic c3">${ICONS.pump}</span><span>Débit<small>Conversion débit de seringue ⇄ dose</small></span></a>
+      <a class="tile" href="${NON_ADMISSION}" target="_blank" rel="noopener"><span class="ic c4">${ICONS.form}</span><span>Non-admission<small>Réanimation chirurgicale : formulaire en ligne</small></span><span class="ext">↗</span></a>
     </div>
     <p class="foot">Outil d'aide destiné aux praticiens du service.<br>Les protocoles officiels du service font référence.</p>
     <button class="linkbtn" id="lockBtn">Verrouiller (oublier le mot de passe sur cet appareil)</button>
