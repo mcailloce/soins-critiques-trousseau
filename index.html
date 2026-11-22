@@ -86,6 +86,10 @@
   .dect .sub{font-size:.78rem;color:var(--muted);margin-top:2px}
   .dect .num{font-size:1.45rem;font-weight:700;letter-spacing:1px;font-variant-numeric:tabular-nums;color:var(--accent2);flex-shrink:0}
   .grp{font-size:.78rem;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:16px 0 6px}
+  .grp.rub{font-size:.85rem;color:var(--ink);font-weight:700;margin-top:22px}
+  .unit{font-size:.8rem;font-weight:600;margin:12px 0 6px;padding-left:10px;border-left:4px solid hsl(var(--h) 55% 45%);color:hsl(var(--h) 45% 32%)}
+  .dect.t{background:linear-gradient(hsl(var(--h) 70% 50% / .09),hsl(var(--h) 70% 50% / .09)),var(--card);border-left:4px solid hsl(var(--h) 55% 50%)}
+  @media (prefers-color-scheme: dark){ .unit{color:hsl(var(--h) 60% 72%)} .dect.t{background:linear-gradient(hsl(var(--h) 60% 55% / .14),hsl(var(--h) 60% 55% / .14)),var(--card)} }
 
   /* Visionneuse PDF */
   #viewer{position:fixed;inset:calc(var(--hdr) + env(safe-area-inset-top)) 0 0 0;background:#525659;display:flex;flex-direction:column}
@@ -163,17 +167,10 @@ const SERVICES = [
 ];
 // Formulaire de non-admission en réanimation chirurgicale (Grist, ouvert hors de l'application)
 const NON_ADMISSION = "https://grist.numerique.gouv.fr/o/docs/forms/sCFasjfWWngRjjkPKxifqp/55";
-// Catégories de l'annuaire DECT (codes utilisés dans sources/annuaire.csv)
-const DECT_CATS = [
-  { id: "mar",       nom: "MAR" },
-  { id: "chir-dig",  nom: "Chirurgien digestif" },
-  { id: "chir-vasc", nom: "Chirurgien vasculaire" },
-  { id: "chir-card", nom: "Chirurgien cardiaque" },
-  { id: "chir-thor", nom: "Chirurgien thoracique" },
-  { id: "cardio",    nom: "Cardiologue" },
-  { id: "hepato",    nom: "Hépatologue" }
-];
-const DCAT = Object.fromEntries(DECT_CATS.map(c => [c.id, c]));
+// Annuaire DECT : les catégories (unités) viennent des données, dans l'ordre du fichier source
+let DECT_CATS = [], DCAT = {};
+const slugify = t => norm(t).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const sansTitre = n => n.replace(/^(dr|pr)\.?\s+/i, "");
 const SVC = Object.fromEntries(SERVICES.map(s => [s.id, s]));
 const PDF_CACHE = "sct-pdf";
 
@@ -212,8 +209,18 @@ async function loadData(){
   const E = await fetchEnc();
   const d = JSON.parse(new TextDecoder().decode(await decrypt(KEY, b64(E.iv), b64(E.ct))));
   DATA = { mise_a_jour: d.mise_a_jour, protocoles: d.protocoles, annuaire: d.annuaire || [] };
-  for (const e of DATA.annuaire) e._n = norm([e.nom, e.fonction, (DCAT[e.categorie] || {}).nom, e.numero].join(" "));
-  DATA.annuaire.sort((a, b) => a.nom.localeCompare(b.nom, "fr", {sensitivity: "base"}));
+  DECT_CATS = []; DCAT = {};
+  const HUES = [210, 150, 30, 330, 265, 185, 0, 95, 45];
+  for (const e of DATA.annuaire) {
+    const id = slugify(e.categorie);
+    if (!DCAT[id]) { DCAT[id] = { id, nom: e.categorie, unites: [] }; DECT_CATS.push(DCAT[id]); }
+    e.cat = id;
+    e.unite = e.unite || "";
+    if (e.unite && !DCAT[id].unites.includes(e.unite)) DCAT[id].unites.push(e.unite);
+    e.hue = e.unite ? HUES[DCAT[id].unites.indexOf(e.unite) % HUES.length] : null;
+    e._n = norm([e.nom, e.fonction, e.categorie, e.unite, e.numero].join(" "));
+  }
+  DATA.annuaire.sort((a, b) => sansTitre(a.nom).localeCompare(sansTitre(b.nom), "fr", {sensitivity: "base"}));
   for (const p of DATA.protocoles) {
     p.services = p.services || [];
     p.commun = !!p.commun;
@@ -397,10 +404,10 @@ async function renderAnnuaire(cat){
   cat = DCAT[cat] ? cat : "";
   setHeader("Annuaire DECT", {back: true, home: true});
   const prev = sessionStorage.getItem("q:annuaire") || "";
-  const n = c => d.annuaire.filter(e => !c || e.categorie === c).length;
+  const n = c => new Set(d.annuaire.filter(e => !c || e.cat === c).map(e => e.nom + e.numero)).size;
   $("view").innerHTML = `<main>
     <div class="search"><span class="lens">⌕</span>
-      <input id="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="Nom, spécialité ou numéro" value="${esc(prev)}">
+      <input id="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="Nom, rubrique, unité ou numéro" value="${esc(prev)}">
       <button class="clr hidden" id="clr" aria-label="Effacer">×</button></div>
     <div class="chips">
       <button class="chip${cat ? "" : " on"}" data-c="">Tous (${n("")})</button>
@@ -410,6 +417,7 @@ async function renderAnnuaire(cat){
     ${d.mise_a_jour ? `<p class="foot">Annuaire mis à jour le ${fmtDate(d.mise_a_jour)}</p>` : ""}
   </main>`;
   $("view").querySelectorAll("[data-c]").forEach(b => b.onclick = () => location.replace("#annuaire" + (b.dataset.c ? "/" + b.dataset.c : "")));
+  const on = $("view").querySelector(".chip.on"); if (on) on.scrollIntoView({inline: "center", block: "nearest"});
   const q = $("q");
   const run = () => {
     const v = q.value;
@@ -418,22 +426,27 @@ async function renderAnnuaire(cat){
     const toks = tokens(v);
     // les numéros sont cherchés aussi par leur début (ex. « 72 »)
     const digits = v.replace(/\D/g, "");
-    let list = d.annuaire.filter(e => !cat || e.categorie === cat);
+    let list = d.annuaire.filter(e => !cat || e.cat === cat);
     if (toks.length || digits) list = list.filter(e => toks.every(t => e._n.includes(t)) || (digits.length >= 2 && e.numero.startsWith(digits)));
-    const item = e => `<div class="dect"><div class="who"><div class="nm">${toks.length ? highlight(e.nom, toks) : esc(e.nom)}</div>
-        <div class="sub">${esc((DCAT[e.categorie] || {}).nom || "")}${e.fonction ? " · " + esc(e.fonction) : ""}</div></div>
+    const lieu = e => e.unite ? e.categorie + " — " + e.unite : e.categorie;
+    const item = (e, units, tint) => `<div class="dect${tint && e.hue != null ? " t" : ""}"${tint && e.hue != null ? ` style="--h:${e.hue}"` : ""}><div class="who"><div class="nm">${toks.length ? highlight(e.nom, toks) : esc(e.nom)}</div>
+        ${units ? `<div class="sub">${esc(units)}${e.fonction ? " · " + esc(e.fonction) : ""}</div>` : e.fonction ? `<div class="sub">${esc(e.fonction)}</div>` : ""}</div>
         <div class="num">${esc(e.numero)}</div></div>`;
+    // une rubrique : sous-groupes par unité, chacun avec sa teinte
+    const rubrique = (c, l) => {
+      if (!c.unites.length) return `<div class="list">${l.map(e => item(e)).join("")}</div>`;
+      return c.unites.map(u => {
+        const lu = l.filter(e => e.unite === u);
+        return lu.length ? `<div class="unit" style="--h:${lu[0].hue}">${esc(u)}</div><div class="list">${lu.map(e => item(e, "", true)).join("")}</div>` : "";
+      }).join("") + (l.some(e => !e.unite) ? `<div class="list">${l.filter(e => !e.unite).map(e => item(e)).join("")}</div>` : "");
+    };
+    // recherche : un praticien présent dans plusieurs unités n'apparaît qu'une fois, avec ses unités
+    const merged = l => { const m = new Map(); for (const e of l) { const k = e.nom + "|" + e.numero; if (!m.has(k)) m.set(k, {e, u: []}); const t = lieu(e); if (!m.get(k).u.includes(t)) m.get(k).u.push(t); } return [...m.values()].map(x => item(x.e, x.u.join(" · "))).join(""); };
     if (!d.annuaire.length) { $("res").innerHTML = `<div class="empty">L'annuaire n'est pas encore rempli.</div>`; return; }
     if (!list.length) { $("res").innerHTML = `<div class="empty">Aucun praticien ne correspond à « ${esc(v.trim())} ».</div>`; return; }
-    // sans recherche ni catégorie : regroupement par catégorie
-    if (!cat && !toks.length && !digits) {
-      $("res").innerHTML = DECT_CATS.map(c => {
-        const l = list.filter(e => e.categorie === c.id);
-        return l.length ? `<div class="grp">${esc(c.nom)}</div><div class="list">${l.map(item).join("")}</div>` : "";
-      }).join("");
-    } else {
-      $("res").innerHTML = `<div class="list">${list.map(item).join("")}</div>`;
-    }
+    if (toks.length || digits) { $("res").innerHTML = `<div class="list">${merged(list)}</div>`; return; }
+    $("res").innerHTML = cat ? rubrique(DCAT[cat], list)
+      : DECT_CATS.map(c => { const l = list.filter(e => e.cat === c.id); return l.length ? `<div class="grp rub">${esc(c.nom)}</div>` + rubrique(c, l) : ""; }).join("");
   };
   q.oninput = run;
   $("clr").onclick = () => { q.value = ""; run(); q.focus(); };
