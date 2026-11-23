@@ -40,7 +40,7 @@
   .tile .ic{width:58px;height:58px;border-radius:16px;display:grid;place-items:center;flex-shrink:0;color:#fff}
   .tile .ic svg{width:32px;height:32px}
   .tile small{display:block;font-weight:400;font-size:.85rem;color:var(--muted);margin-top:3px}
-  .c1{background:#1f6fa8}.c2{background:#0b7a4b}.c3{background:#b4472c}.c4{background:#6b4fa0}.c5{background:#0e7c86}
+  .c1{background:#1f6fa8}.c2{background:#0b7a4b}.c3{background:#b4472c}.c4{background:#6b4fa0}.c5{background:#0e7c86}.c6{background:#a06a00}
   .tile .ext{margin-left:auto;color:var(--muted);font-size:1.1rem;font-weight:400}
   .foot{font-size:.75rem;color:var(--muted);text-align:center;margin-top:22px;line-height:1.5}
 
@@ -90,6 +90,29 @@
   .unit{font-size:.8rem;font-weight:600;margin:12px 0 6px;padding-left:10px;border-left:4px solid hsl(var(--h) 55% 45%);color:hsl(var(--h) 45% 32%)}
   .dect.t{background:linear-gradient(hsl(var(--h) 70% 50% / .09),hsl(var(--h) 70% 50% / .09)),var(--card);border-left:4px solid hsl(var(--h) 55% 50%)}
   @media (prefers-color-scheme: dark){ .unit{color:hsl(var(--h) 60% 72%)} .dect.t{background:linear-gradient(hsl(var(--h) 60% 55% / .14),hsl(var(--h) 60% 55% / .14)),var(--card)} }
+
+  /* Calculateurs de scores */
+  .sc-item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+  .sc-item .lb{font-weight:600;font-size:.95rem;margin-bottom:6px}
+  .sc-item .hint{font-size:.78rem;color:var(--muted);margin:-2px 0 6px}
+  .sc-opts{display:flex;flex-direction:column;gap:6px}
+  .sc-opt{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;font-size:.93rem;background:var(--bg)}
+  .sc-opt.on{border-color:var(--accent2);background:var(--soft)}
+  .sc-opt input{width:18px;height:18px;flex-shrink:0;margin:0}
+  .sc-opt .pt{margin-left:auto;color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums;flex-shrink:0}
+  .sc-num{display:flex;gap:8px;align-items:center}
+  .sc-num input{flex:1;font-size:1.1rem;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+  .sc-num span{color:var(--muted);font-size:.9rem}
+  .sc-res{position:sticky;bottom:0;margin:12px -12px 0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line);box-shadow:0 -4px 12px rgba(0,0,0,.08)}
+  .sc-res .tot{display:flex;align-items:baseline;gap:10px}
+  .sc-res .v{font-size:1.8rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent2)}
+  .sc-res .u{color:var(--muted);font-size:.9rem}
+  .sc-res .it{margin-top:4px;font-size:.92rem;font-weight:600}
+  .sc-res .miss{margin-top:4px;font-size:.8rem;color:var(--muted)}
+  .lvl-1{color:#0b7a4b}.lvl-2{color:#b07800}.lvl-3{color:#c0392b}
+  @media (prefers-color-scheme: dark){ .lvl-1{color:#4fd19a}.lvl-2{color:#f0c040}.lvl-3{color:#ff7b6b} }
+  .sc-ref{font-size:.75rem;color:var(--muted);margin-top:14px;line-height:1.4}
+  .sc-reset{background:none;border:0;color:var(--accent2);font-size:.85rem;cursor:pointer;padding:4px 0}
 
   /* Visionneuse PDF */
   #viewer{position:fixed;inset:calc(var(--hdr) + env(safe-area-inset-top)) 0 0 0;background:#525659;display:flex;flex-direction:column}
@@ -359,6 +382,7 @@ const ICONS = {
   doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"/></svg>',
   pill: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5a5 5 0 0 1-7-7l10-10a5 5 0 0 1 7 7z"/><path d="m8.5 8.5 7 7"/></svg>',
   phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M10 6h4M9.5 10h0M12 10h0M14.5 10h0M9.5 13h0M12 13h0M14.5 13h0M9.5 16h0M12 16h0M14.5 16h0"/></svg>',
+  calc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8v4H8zM8 14h0M12 14h0M16 14h0M8 18h0M12 18h0M16 18h0"/></svg>',
   form: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 3h6v3H9zM8 11h8M8 15h5"/><path d="m15 17 1.5 1.5L19 16"/></svg>',
   pump: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="9" width="15" height="6" rx="1"/><path d="M17 12h5M6 9v6M10 9v6M2 12H0"/><path d="M19 5v3M19 16v3"/></svg>'
 };
@@ -387,6 +411,7 @@ function renderHome(){
       <a class="tile" href="#antibio"><span class="ic c2">${ICONS.pill}</span><span>Antibiotiques réa<small>Posologies et adaptation à la fonction rénale</small></span></a>
       <a class="tile" href="#debit"><span class="ic c3">${ICONS.pump}</span><span>Débit<small>Conversion débit de seringue ⇄ dose</small></span></a>
       <a class="tile" href="#annuaire"><span class="ic c5">${ICONS.phone}</span><span>Annuaire DECT<small>Numéros courts des praticiens</small></span></a>
+      <a class="tile" href="#scores"><span class="ic c6">${ICONS.calc}</span><span>Calculateurs de scores<small>Scores de gravité et d'évaluation</small></span></a>
       <a class="tile" href="${NON_ADMISSION}" target="_blank" rel="noopener"><span class="ic c4">${ICONS.form}</span><span>Non-admission<small>Réanimation chirurgicale : formulaire en ligne</small></span><span class="ext">↗</span></a>
     </div>
     <p class="foot">Outil d'aide destiné aux praticiens du service.<br>Les protocoles officiels du service font référence.</p>
@@ -451,6 +476,111 @@ async function renderAnnuaire(cat){
   q.oninput = run;
   $("clr").onclick = () => { q.value = ""; run(); q.focus(); };
   run();
+}
+
+// ---------------------------------------------------------------------------
+// Calculateurs de scores (définitions dans scores.json)
+// Types d'items : "choix" (une option), "cases" (plusieurs cases cochables), "nombre" (valeur → points par paliers)
+// Total : somme des points, ou "formule" (expression utilisant les identifiants des items)
+// ---------------------------------------------------------------------------
+let SCORES = null;
+async function loadScores(){
+  if (SCORES) return SCORES;
+  try { SCORES = (await (await fetch("scores.json", {cache: "no-cache"})).json()).scores || []; }
+  catch { SCORES = []; }
+  for (const sc of SCORES) sc._n = norm([sc.nom, sc.categorie, sc.description, (sc.mots_cles || "")].join(" "));
+  return SCORES;
+}
+async function renderScores(id){
+  showFrame(null);
+  const list = await loadScores();
+  if (id) return renderScore(list.find(s => s.id === id));
+  setHeader("Calculateurs de scores", {back: true, home: true});
+  const prev = sessionStorage.getItem("q:scores") || "";
+  $("view").innerHTML = `<main>
+    <div class="search"><span class="lens">⌕</span>
+      <input id="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="Rechercher un score" value="${esc(prev)}">
+      <button class="clr hidden" id="clr" aria-label="Effacer">×</button></div>
+    <div id="res"></div></main>`;
+  const q = $("q");
+  const run = () => {
+    const v = q.value; sessionStorage.setItem("q:scores", v);
+    $("clr").classList.toggle("hidden", !v);
+    if (!list.length) { $("res").innerHTML = `<div class="empty">Aucun score pour l'instant.</div>`; return; }
+    const toks = tokens(v);
+    const l = list.filter(sc => toks.every(t => sc._n.includes(t)));
+    if (!l.length) { $("res").innerHTML = `<div class="empty">Aucun score ne correspond à « ${esc(v.trim())} ».</div>`; return; }
+    const cats = [...new Set(l.map(sc => sc.categorie || ""))];
+    $("res").innerHTML = cats.map(c => (c ? `<h2>${esc(c)}</h2>` : "") + `<div class="list">${l.filter(sc => (sc.categorie || "") === c).map(sc =>
+      `<a class="item" href="#scores/${encodeURIComponent(sc.id)}"><div class="t">${toks.length ? highlight(sc.nom, toks) : esc(sc.nom)}</div>${sc.description ? `<div class="m">${esc(sc.description)}</div>` : ""}</a>`).join("")}</div>`).join("");
+  };
+  q.oninput = run;
+  $("clr").onclick = () => { q.value = ""; run(); q.focus(); };
+  run();
+}
+function renderScore(sc){
+  if (!sc) { setHeader("Score", {back: true, home: true}); $("view").innerHTML = `<main><div class="empty">Score introuvable.</div></main>`; return; }
+  setHeader(sc.nom, {back: true, home: true});
+  const val = {};   // id → valeur saisie (index d'option, tableau de cases, ou nombre)
+  const ptsOf = it => {
+    const v = val[it.id];
+    if (it.type === "choix") return v == null ? null : it.options[v].points;
+    if (it.type === "cases") return (v || []).reduce((a, i) => a + it.options[i].points, 0);
+    if (it.type === "nombre") {
+      if (v == null || isNaN(v)) return null;
+      if (!it.paliers) return v;
+      for (const p of it.paliers) if ((p.min == null || v >= p.min) && (p.max == null || v < p.max)) return p.points;
+      return null;
+    }
+    return null;
+  };
+  const fmt = x => (Math.round(x * 100) / 100).toLocaleString("fr-FR");
+  const optHtml = (it, i, o, multi) => `<label class="sc-opt" data-it="${esc(it.id)}" data-i="${i}">
+      <input type="${multi ? "checkbox" : "radio"}" name="${esc(it.id)}"><span>${esc(o.label)}</span>${sc.masquer_points ? "" : `<span class="pt">${o.points > 0 ? "+" : ""}${fmt(o.points)}</span>`}</label>`;
+  $("view").innerHTML = `<main>
+    ${sc.description ? `<p class="hint" style="color:var(--muted);font-size:.85rem;margin:0 0 10px">${esc(sc.description)}</p>` : ""}
+    ${sc.items.map(it => `<div class="sc-item"><div class="lb">${esc(it.label)}</div>${it.aide ? `<div class="hint">${esc(it.aide)}</div>` : ""}
+      ${it.type === "nombre"
+        ? `<div class="sc-num"><input type="text" inputmode="decimal" autocomplete="off" data-num="${esc(it.id)}" placeholder="${esc(it.placeholder || "")}">${it.unite ? `<span>${esc(it.unite)}</span>` : ""}</div>`
+        : `<div class="sc-opts">${it.options.map((o, i) => optHtml(it, i, o, it.type === "cases")).join("")}</div>`}
+    </div>`).join("")}
+    <button class="sc-reset" id="reset">Tout effacer</button>
+    ${sc.reference ? `<p class="sc-ref">Référence : ${esc(sc.reference)}</p>` : ""}
+    <div class="sc-res" id="res"></div>
+  </main>`;
+  const compute = () => {
+    const pts = {}; let missing = [];
+    for (const it of sc.items) {
+      const p = ptsOf(it);
+      if (p == null && it.type !== "cases") { if (!it.facultatif) missing.push(it.label); pts[it.id] = 0; }
+      else pts[it.id] = p;
+    }
+    let total;
+    if (sc.formule) { try { total = Function(...Object.keys(pts), "Math", `return (${sc.formule});`)(...Object.values(pts), Math); } catch { total = NaN; } }
+    else total = Object.values(pts).reduce((a, b) => a + b, 0);
+    const done = !missing.length && isFinite(total);
+    let interp = "";
+    if (done && sc.interpretation) for (const r of sc.interpretation)
+      if ((r.min == null || total >= r.min) && (r.max == null || total <= r.max)) { interp = `<div class="it lvl-${r.niveau || 0}">${esc(r.texte)}</div>`; break; }
+    $("res").innerHTML = `<div class="tot"><span class="v">${isFinite(total) ? fmt(total) : "—"}</span><span class="u">${esc(sc.unite || "points")}${sc.max != null ? " / " + sc.max : ""}</span></div>
+      ${done ? interp : `<div class="miss">${missing.length} élément${missing.length > 1 ? "s" : ""} à renseigner</div>`}`;
+  };
+  $("view").querySelectorAll(".sc-opt").forEach(el => el.onclick = e => {
+    e.preventDefault();
+    const it = sc.items.find(x => x.id === el.dataset.it), i = +el.dataset.i;
+    if (it.type === "cases") { const a = val[it.id] || (val[it.id] = []); const k = a.indexOf(i); k >= 0 ? a.splice(k, 1) : a.push(i); }
+    else val[it.id] = val[it.id] === i ? null : i;
+    $("view").querySelectorAll(`.sc-opt[data-it="${CSS.escape(it.id)}"]`).forEach(o => {
+      const on = it.type === "cases" ? (val[it.id] || []).includes(+o.dataset.i) : val[it.id] === +o.dataset.i;
+      o.classList.toggle("on", on); o.querySelector("input").checked = on;
+    });
+    compute();
+  });
+  $("view").querySelectorAll("[data-num]").forEach(el => el.oninput = () => {
+    const v = el.value.replace(",", ".").trim(); val[el.dataset.num] = v === "" ? null : parseFloat(v); compute();
+  });
+  $("reset").onclick = () => renderScore(sc);
+  compute();
 }
 
 function renderApp(which){
@@ -718,6 +848,7 @@ async function route(){
   if (parts[0] === "antibio" || parts[0] === "debit") return renderApp(parts[0]);
   if (parts[0] === "protocoles") return renderProtocoles(parts[1]);
   if (parts[0] === "annuaire") return renderAnnuaire(parts[1]);
+  if (parts[0] === "scores") return renderScores(parts[1]);
   if (parts[0] === "pdf") return renderPdf(parts[1], +parts[2] || 1, new URLSearchParams(qs || "").get("q") || "");
   renderHome();
 }

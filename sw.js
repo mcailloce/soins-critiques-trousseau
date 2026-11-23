@@ -1,12 +1,12 @@
 // Service worker de Soins critiques Trousseau.
 // VERSION est mise à jour automatiquement par outils/maj_protocoles.py.
 // Les protocoles sont chiffrés : le cache ne contient que des fichiers illisibles sans le mot de passe.
-const VERSION = "sct-shell-2026-11-22-1944";
+const VERSION = "sct-shell-2026-11-23-1344";
 const PDF_CACHE = "sct-pdf";
 const FILES = [
   "./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png",
   "./vendor/pdfjs/pdf.min.mjs", "./vendor/pdfjs/pdf.worker.min.mjs",
-  "./protocoles/donnees.enc.json"
+  "./protocoles/donnees.enc.json", "./scores.json"
 ];
 
 self.addEventListener("install", e => {
