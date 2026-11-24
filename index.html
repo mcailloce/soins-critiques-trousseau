@@ -112,6 +112,22 @@
   .lvl-1{color:#0b7a4b}.lvl-2{color:#b07800}.lvl-3{color:#c0392b}
   @media (prefers-color-scheme: dark){ .lvl-1{color:#4fd19a}.lvl-2{color:#f0c040}.lvl-3{color:#ff7b6b} }
   .sc-ref{font-size:.75rem;color:var(--muted);margin-top:14px;line-height:1.4}
+  .sc-unit{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;flex-shrink:0}
+  .sc-unit button{border:0;background:transparent;color:var(--ink);padding:9px 8px;font-size:.8rem;cursor:pointer}
+  .sc-unit button.on{background:var(--accent);color:#fff}
+  @media (prefers-color-scheme: dark){ .sc-unit button.on{color:#0f161c} }
+  .sc-conv{font-size:.8rem;color:var(--muted);margin-top:6px;min-height:1em;font-variant-numeric:tabular-nums}
+  .sc-row{display:flex;gap:8px;margin-top:8px}
+  .sc-row > div{flex:1;min-width:0}
+  .sc-num input{min-width:0;width:100%}
+  .sc-row label.mini{display:block;font-size:.78rem;color:var(--muted);margin-bottom:3px}
+  .sc-chk{display:flex;align-items:center;gap:9px;margin-top:8px;font-size:.92rem;cursor:pointer}
+  .sc-chk input{width:20px;height:20px;margin:0}
+  .organs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px}
+  .organ{border:1px solid var(--line);border-radius:8px;padding:5px 6px;font-size:.74rem;text-align:center;background:var(--bg)}
+  .organ b{display:block;font-size:1rem}
+  .organ.fail{border-color:#c0392b;background:rgba(192,57,43,.10)}
+  .sc-res .sub2{font-size:.85rem;margin-top:6px}
   .sc-reset{background:none;border:0;color:var(--accent2);font-size:.85rem;cursor:pointer;padding:4px 0}
 
   /* Visionneuse PDF */
@@ -518,7 +534,150 @@ async function renderScores(id){
   $("clr").onclick = () => { q.value = ""; run(); q.focus(); };
   run();
 }
+// ---------------------------------------------------------------------------
+// CLIF-C : OF (6 organes), grade ACLF (EASL-CLIF), CLIF-C ACLF ou CLIF-C AD
+// Jalan R et al. J Hepatol 2014;61:1038-47 · Jalan R et al. J Hepatol 2015;62:831-40 · Moreau R et al. Gastroenterology 2013
+// ---------------------------------------------------------------------------
+const CONV = { creat: 88.4, bili: 17.1 };   // 1 mg/dL = 88,4 µmol/L (créatinine) ; 17,1 µmol/L (bilirubine) ; 1 mg/dL = 10 mg/L
+function renderClif(sc){
+  setHeader(sc.nom, {back: true, home: true});
+  const unitPref = k => { try { return localStorage.getItem("unit:" + k) || "umol"; } catch { return "umol"; } };
+  const U = { creat: unitPref("creat"), bili: unitPref("bili") };
+  const UL = { umol: "µmol/L", mgl: "mg/L", mgdl: "mg/dL" };
+  const lab = (id, titre, aide) => `<div class="sc-item"><div class="lb">${titre}</div>${aide ? `<div class="hint">${aide}</div>` : ""}
+      <div class="sc-num"><input type="text" inputmode="decimal" autocomplete="off" id="${id}">
+        <div class="sc-unit" data-u="${id}">${Object.entries(UL).map(([k, l]) => `<button type="button" data-k="${k}" class="${U[id] === k ? "on" : ""}">${l}</button>`).join("")}</div></div>
+      <div class="sc-conv" id="${id}-conv"></div></div>`;
+  const num = (id, titre, unite, aide) => `<div class="sc-item"><div class="lb">${titre}</div>${aide ? `<div class="hint">${aide}</div>` : ""}
+      <div class="sc-num"><input type="text" inputmode="decimal" autocomplete="off" id="${id}">${unite ? `<span>${unite}</span>` : ""}</div></div>`;
+  const he = ["0 — absente", "1", "2", "3", "4"];
+  $("view").innerHTML = `<main>
+    <p style="color:var(--muted);font-size:.85rem;margin:0 0 10px">${esc(sc.description || "")}</p>
+    <h2>Patient</h2>
+    <div class="sc-item"><div class="sc-row">
+      <div><label class="mini">Âge (ans)</label><div class="sc-num"><input type="text" inputmode="decimal" id="age"></div></div>
+      <div><label class="mini">Leucocytes (G/L)</label><div class="sc-num"><input type="text" inputmode="decimal" id="wbc"></div></div>
+      <div><label class="mini">Natrémie (mmol/L)</label><div class="sc-num"><input type="text" inputmode="decimal" id="na"></div></div>
+    </div><div class="hint" style="margin-top:6px">La natrémie ne sert qu'au CLIF-C AD (patients sans ACLF).</div></div>
+    <h2>Défaillances d'organes (CLIF-C OF)</h2>
+    ${lab("bili", "Foie — bilirubine totale")}
+    ${lab("creat", "Rein — créatinine")}
+    <div class="sc-item" style="margin-top:-6px"><label class="sc-chk"><input type="checkbox" id="eer"> Épuration extra-rénale</label></div>
+    <div class="sc-item"><div class="lb">Cerveau — encéphalopathie hépatique (West Haven)</div>
+      <div class="sc-opts" id="he">${he.map((t, i) => `<label class="sc-opt" data-i="${i}"><input type="radio" name="he"><span>Grade ${t}</span></label>`).join("")}</div></div>
+    ${num("inr", "Coagulation — INR", "")}
+    <div class="sc-item"><div class="lb">Circulation</div>
+      <div class="sc-num"><input type="text" inputmode="decimal" id="pam" placeholder="PAM"><span>mmHg</span></div>
+      <label class="sc-chk"><input type="checkbox" id="vaso"> Vasopresseurs</label>
+      <div class="hint" style="margin-top:4px">Avec vasopresseurs, la PAM n'est pas nécessaire.</div></div>
+    <div class="sc-item"><div class="lb">Respiratoire</div>
+      <div class="sc-row">
+        <div><label class="mini">PaO₂ (mmHg)</label><div class="sc-num"><input type="text" inputmode="decimal" id="pao2"></div></div>
+        <div><label class="mini">ou SpO₂ (%)</label><div class="sc-num"><input type="text" inputmode="decimal" id="spo2"></div></div>
+        <div><label class="mini">FiO₂ (%)</label><div class="sc-num"><input type="text" inputmode="decimal" id="fio2"></div></div>
+      </div>
+      <div class="hint" style="margin-top:6px">PaO₂ prioritaire si les deux sont saisies. FiO₂ en air ambiant : 21 %.</div>
+      <label class="sc-chk"><input type="checkbox" id="vm"> Ventilation mécanique</label>
+      <div class="sc-opts hidden" id="vmwhy" style="margin-top:6px">
+        <label class="sc-opt" data-i="resp"><input type="radio" name="vmw"><span>Pour défaillance respiratoire</span></label>
+        <label class="sc-opt" data-i="he"><input type="radio" name="vmw"><span>Uniquement pour encéphalopathie (protection des voies aériennes)</span></label>
+      </div></div>
+    <button class="sc-reset" id="reset">Tout effacer</button>
+    <p class="sc-ref">Conversions : créatinine 1 mg/dL = 88,4 µmol/L ; bilirubine 1 mg/dL = 17,1 µmol/L ; 1 mg/dL = 10 mg/L.<br>
+    Référence : ${esc(sc.reference || "")}</p>
+    <div class="sc-res" id="res"></div>
+  </main>`;
+  const st = { he: null, vmw: null };
+  const f = id => { const v = $(id).value.replace(",", ".").trim(); return v === "" ? null : parseFloat(v); };
+  const toMgdl = (id) => { const v = f(id); if (v == null || isNaN(v)) return null; return U[id] === "umol" ? v / CONV[id] : U[id] === "mgl" ? v / 10 : v; };
+  const r1 = x => (Math.round(x * 10) / 10).toLocaleString("fr-FR");
+  const r2 = x => (Math.round(x * 100) / 100).toLocaleString("fr-FR");
+  const showConv = id => {
+    const d = toMgdl(id), el = $(id + "-conv");
+    if (d == null) { el.textContent = ""; return; }
+    el.textContent = "= " + [["umol", r1(d * CONV[id]) + " µmol/L"], ["mgl", r1(d * 10) + " mg/L"], ["mgdl", r2(d) + " mg/dL"]].filter(x => x[0] !== U[id]).map(x => x[1]).join(" · ");
+  };
+  const compute = () => {
+    showConv("bili"); showConv("creat");
+    const bili = toMgdl("bili"), cr = toMgdl("creat"), eer = $("eer").checked, inr = f("inr"), pam = f("pam"), vaso = $("vaso").checked;
+    const pao2 = f("pao2"), spo2 = f("spo2"), fio2 = f("fio2"), vm = $("vm").checked;
+    $("vmwhy").classList.toggle("hidden", !vm);
+    const o = {};   // sous-scores 1-3, null si non renseigné
+    o.foie = bili == null ? null : bili < 6 ? 1 : bili < 12 ? 2 : 3;
+    o.rein = eer ? 3 : cr == null ? null : cr < 2 ? 1 : cr < 3.5 ? 2 : 3;
+    o.cerveau = st.he == null ? null : st.he === 0 ? 1 : st.he <= 2 ? 2 : 3;
+    if (vm && st.vmw === "he") o.cerveau = 3;
+    o.coag = inr == null ? null : inr < 2 ? 1 : inr < 2.5 ? 2 : 3;
+    o.circ = vaso ? 3 : pam == null ? null : pam >= 70 ? 1 : 2;
+    let ratio = null, rtype = "";
+    if (fio2 > 0) { const fi = fio2 > 1 ? fio2 / 100 : fio2; if (pao2 != null) { ratio = pao2 / fi; rtype = "P/F"; } else if (spo2 != null) { ratio = spo2 / fi; rtype = "S/F"; } }
+    if (vm && st.vmw === "resp") o.resp = 3;
+    else if (ratio == null) o.resp = null;
+    else o.resp = rtype === "P/F" ? (ratio > 300 ? 1 : ratio > 200 ? 2 : 3) : (ratio > 357 ? 1 : ratio > 214 ? 2 : 3);
+    // défaillances : rein dès créatinine ≥ 2 mg/dL (sous-score ≥ 2) ; autres organes sous-score 3
+    const fail = { foie: o.foie === 3, rein: o.rein != null && o.rein >= 2, cerveau: o.cerveau === 3, coag: o.coag === 3, circ: o.circ === 3, resp: o.resp === 3 };
+    const noms = { foie: "Foie", rein: "Rein", cerveau: "Cerveau", coag: "Coag.", circ: "Circ.", resp: "Resp." };
+    const manquants = Object.keys(o).filter(k => o[k] == null);
+    const organsHtml = `<div class="organs">${Object.keys(noms).map(k => `<div class="organ${fail[k] ? " fail" : ""}">${noms[k]}<b>${o[k] ?? "—"}</b></div>`).join("")}</div>`;
+    let html = "";
+    if (manquants.length) {
+      html = `<div class="tot"><span class="v">—</span><span class="u">CLIF-C OF / 18</span></div>
+        <div class="miss">À renseigner : ${manquants.map(k => noms[k]).join(", ")}${vm && !st.vmw ? " · motif de la ventilation" : ""}</div>${organsHtml}`;
+    } else {
+      const of = Object.values(o).reduce((a, b) => a + b, 0);
+      const fails = Object.keys(fail).filter(k => fail[k]);
+      const n = fails.length;
+      const dysRein = cr != null && cr >= 1.5 && cr < 2 && !eer, he12 = st.he === 1 || st.he === 2;
+      let grade = 0;
+      if (n >= 3) grade = 3; else if (n === 2) grade = 2;
+      else if (n === 1) {
+        if (fails[0] === "rein") grade = 1;
+        else if (fails[0] === "cerveau") grade = dysRein ? 1 : 0;
+        else grade = (dysRein || he12) ? 1 : 0;
+      }
+      const age = f("age"), wbc = f("wbc"), na = f("na");
+      let second = "";
+      if (grade > 0) {
+        if (age != null && wbc > 0) {
+          const s = 10 * (0.33 * of + 0.04 * age + 0.63 * Math.log(wbc) - 2);
+          second = `<div class="sub2"><b>CLIF-C ACLF : ${r1(s)}</b>${s > 70 && grade === 3 ? ` <span class="lvl-3">— &gt; 70 (seuil de futilité proposé si persistant à J3–J7, Engelmann 2018)</span>` : ""}</div>`;
+        } else second = `<div class="miss">CLIF-C ACLF : renseigner âge et leucocytes</div>`;
+      } else {
+        if (age != null && wbc > 0 && cr > 0 && inr > 0 && na != null) {
+          const s = 10 * (0.03 * age + 0.66 * Math.log(cr) + 1.71 * Math.log(inr) + 0.88 * Math.log(wbc) - 0.05 * na + 8);
+          second = `<div class="sub2"><b>CLIF-C AD : ${r1(s)}</b> <span class="u">(${s <= 45 ? "risque faible" : s >= 60 ? "risque élevé" : "risque intermédiaire"})</span></div>`;
+        } else second = `<div class="miss">CLIF-C AD : renseigner âge, leucocytes et natrémie</div>`;
+      }
+      const gtxt = grade ? `ACLF grade ${grade}` : "Pas d'ACLF";
+      html = `<div class="tot"><span class="v">${of}</span><span class="u">CLIF-C OF / 18 · ${n} défaillance${n > 1 ? "s" : ""}</span></div>
+        <div class="it lvl-${grade === 0 ? 1 : grade === 1 ? 2 : 3}">${gtxt}</div>${second}${organsHtml}`;
+    }
+    $("res").innerHTML = html;
+  };
+  $("view").querySelectorAll("input").forEach(el => el.addEventListener("input", compute));
+  $("view").querySelectorAll(".sc-unit").forEach(g => g.querySelectorAll("button").forEach(b => b.onclick = () => {
+    const id = g.dataset.u, d = toMgdl(id);
+    U[id] = b.dataset.k; try { localStorage.setItem("unit:" + id, U[id]); } catch {}
+    g.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+    if (d != null) $(id).value = String(U[id] === "umol" ? Math.round(d * CONV[id]) : U[id] === "mgl" ? r1(d * 10) : r2(d)).replace(".", ",");
+    compute();
+  }));
+  $("he").querySelectorAll(".sc-opt").forEach(el => el.onclick = e => {
+    e.preventDefault(); const i = +el.dataset.i; st.he = st.he === i ? null : i;
+    $("he").querySelectorAll(".sc-opt").forEach(x => { const on = +x.dataset.i === st.he; x.classList.toggle("on", on); x.querySelector("input").checked = on; });
+    compute();
+  });
+  $("vmwhy").querySelectorAll(".sc-opt").forEach(el => el.onclick = e => {
+    e.preventDefault(); st.vmw = el.dataset.i;
+    $("vmwhy").querySelectorAll(".sc-opt").forEach(x => { const on = x.dataset.i === st.vmw; x.classList.toggle("on", on); x.querySelector("input").checked = on; });
+    compute();
+  });
+  $("reset").onclick = () => renderClif(sc);
+  compute();
+}
+
 function renderScore(sc){
+  if (sc && sc.module === "clif") return renderClif(sc);
   if (!sc) { setHeader("Score", {back: true, home: true}); $("view").innerHTML = `<main><div class="empty">Score introuvable.</div></main>`; return; }
   setHeader(sc.nom, {back: true, home: true});
   const val = {};   // id → valeur saisie (index d'option, tableau de cases, ou nombre)

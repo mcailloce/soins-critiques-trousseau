@@ -1,3 +1,13 @@
 {
- "scores": []
+ "scores": [
+  {
+   "id": "clif-c",
+   "nom": "CLIF-C (OF, ACLF, AD)",
+   "categorie": "Hépatologie",
+   "description": "Cirrhose avec décompensation aiguë : défaillances d'organes (CLIF-C OF), grade d'ACLF (EASL-CLIF), puis CLIF-C ACLF en cas d'ACLF ou CLIF-C AD en l'absence d'ACLF.",
+   "mots_cles": "cirrhose ACLF acute-on-chronic liver failure EASL CLIF-OF CLIF-SOFA AD décompensation",
+   "module": "clif",
+   "reference": "Jalan R et al. J Hepatol 2014;61:1038-47 (CLIF-C OF et ACLF) · Jalan R et al. J Hepatol 2015;62:831-40 (CLIF-C AD) · Moreau R et al. Gastroenterology 2013;144:1426-37 (grades ACLF) · Engelmann C et al. Crit Care 2018;22:254 · efclif.com"
+  }
+ ]
 }
